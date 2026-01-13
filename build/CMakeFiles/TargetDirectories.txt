@@ -1,3 +1,0 @@
-/home/danie/sqrtapprox/build/CMakeFiles/squareroot.dir
-/home/danie/sqrtapprox/build/CMakeFiles/edit_cache.dir
-/home/danie/sqrtapprox/build/CMakeFiles/rebuild_cache.dir
