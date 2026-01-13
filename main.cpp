@@ -1,5 +1,12 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include <cmath>
+
+float abs(float x){
+    if (x < 0) return (-1.0 * x);
+    return x;
+}
 
 int power(int base, int exp){
     int ans = 1;
@@ -25,6 +32,24 @@ int get_digits(float n){
     while (m > 0){m/=10;digits++;}
 
     return digits;
+}
+
+void tweak(float n, float &sqrt_n_approx){
+    // std::cout << "Approx before tweak : " << sqrt_n_approx << "\n";
+    //trying to get sqrt_n_approx closer to real sqrt_n;
+    bool positive_direction = (power(sqrt_n_approx, 2) < n);
+    float step{power(10.0f, get_digits(sqrt_n_approx))};
+    for (int i = 0; i < 13; i++){
+        step /= 10.0f;
+        int max_counter{0};
+        while (positive_direction ? (power(sqrt_n_approx, 2) < n) : (power(sqrt_n_approx, 2) > n)){
+            max_counter++;
+            sqrt_n_approx += positive_direction ? step : (-1.0f * step);
+            // std::cout << sqrt_n_approx << " compared to CMath " << std::sqrt(n) << "\n";
+            if (max_counter == 10) break;
+        }
+        sqrt_n_approx += positive_direction ? (-1.0f * step) : step;
+    }
 }
 
 int find_companion(float n){
@@ -53,14 +78,14 @@ int find_companion(float n){
             high_sqrt = middle_sqrt;
         }
     }
-    if (high_squared == n){
+    if (abs(high_squared - n) < abs(low_squared - n)){
         return high_sqrt;
     }
     return low_sqrt;
 }  
 
 float taylor_coeff(int n, int sqrt_a){
-    float num = (n % 2 == 1) ? 1.0 : -1.0;
+    float num = (n % 2 == 1) ? 1.0f : -1.0f;
     int prod = 1;
     for (int k = 0; k < n - 2; k++){
         prod *= (2*k + 1);
@@ -76,18 +101,36 @@ bool is_infinite(float x) {
     return (x == x) && ((x - x) != 0.0f);
 }
 
-float sqrt(float x){
+float taylor_expansion(float x){
     int sqrt_a = find_companion(x);
     int a = power(sqrt_a,2);
 
     float sqrt_x{static_cast<float>(sqrt_a)};
-    for (int n = 1; n < 3; n++){
+    float last_approx{sqrt_x};
+    float distance{999};
+    for (int n = 1; n < 100; n++){
+        last_approx = sqrt_x;
         float tc = taylor_coeff(n, sqrt_a);
         if (is_infinite(tc)){
             break;
         }
         sqrt_x += (tc * power((x - static_cast<float>(a)), n));
+
+        //next distance < last distance
+        if (abs(sqrt_x - last_approx) < distance){
+            distance = abs(sqrt_x - last_approx);
+        }
+        else{
+            return last_approx;
+        }
     }
+    return sqrt_x;
+}
+
+
+float sqrt(float x){
+    float sqrt_x = taylor_expansion(x);
+    tweak(x, sqrt_x);
     return sqrt_x;
 }
 
@@ -100,8 +143,17 @@ int main(){
         std::cout << "Invalid input." << std::endl;
         return 1;  
     }
-    
-    std::cout << "Approximate Squareroot : " << sqrt(user_value) << "\n"; 
-    std::cout << "CMath Squareroot : " << std::sqrt(user_value) << "\n";
+
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+    float cmath_sqrt_val = std::sqrt(user_value);
+    std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time - start_time);
+    std::cout << "CMath Squareroot : " << cmath_sqrt_val << " in " << (elapsed_time.count() * power(10.0f, 9) )<< " nanoseconds.\n";
+    start_time = std::chrono::steady_clock::now();
+    float sqrt_user_value = sqrt(user_value);
+    current_time = std::chrono::steady_clock::now();
+    elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time - start_time);
+    std::cout << "My Squareroot : " << sqrt_user_value << " in " << (elapsed_time.count() * power(10.0f, 9) )<< " nanoseconds.\n";
+
     return 0;
 }
