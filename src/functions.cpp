@@ -32,7 +32,7 @@ int get_digits(float n){
     return digits;
 }
 
-void tweak(float n, float &sqrt_n_approx){
+float tweak(float n, float sqrt_n_approx){
     // std::cout << "Approx before tweak : " << sqrt_n_approx << "\n";
     //trying to get sqrt_n_approx closer to real sqrt_n;
     bool positive_direction = (power(sqrt_n_approx, 2) < n);
@@ -48,6 +48,7 @@ void tweak(float n, float &sqrt_n_approx){
         }
         sqrt_n_approx += positive_direction ? (-1.0f * step) : step;
     }
+    return sqrt_n_approx;
 }
 
 int find_companion(float n){
@@ -64,7 +65,6 @@ int find_companion(float n){
     int middle_sqrt{0};
     int middle_squared{0};
     while (high_sqrt - low_sqrt > 1) {
-        // std::cout << "High Squareroot: " << high_sqrt << "\n";
         middle_sqrt = (low_sqrt + high_sqrt)/2;
         middle_squared = power(middle_sqrt, 2);
 
@@ -109,6 +109,9 @@ bool is_infinite(float x){
 
 float taylor_expansion(float x, int sqrt_approx){
     int approx = power(sqrt_approx,2);
+    
+    if (approx == x)
+        return static_cast<float>(sqrt_approx);
 
     float sqrt_x{static_cast<float>(sqrt_approx)};
     float last_approx{sqrt_x};
@@ -133,18 +136,22 @@ float taylor_expansion(float x, int sqrt_approx){
 }
 
 
+/*
+    TODO: convert this function into following form:
+
+    outputA = func1(x);
+    outputB = func2(outputA);
+    outputC = func3(outputB);
+    return outputC;
+*/
+
 float my_sqrt(float x){
     if (x == 0)
         return 0;
-    int sqrt_approx = find_companion(x);
-    if (sqrt_approx * sqrt_approx == x){
-        return static_cast<float>(sqrt_approx);
-    }
-    // std::cout << "Friend Squareroot: " << sqrt_approx << "\n";
-    float sqrt_x = taylor_expansion(x, sqrt_approx);
-    if (sqrt_x * sqrt_x == x){
-        return sqrt_x;
-    }
-    tweak(x, sqrt_x);
+
+    int closest_integer = find_companion(x);
+    float sqrt_approx = taylor_expansion(x, closest_integer);
+    float sqrt_x = tweak(x, sqrt_approx);
+
     return sqrt_x;
 }

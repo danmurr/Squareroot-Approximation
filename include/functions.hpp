@@ -2,9 +2,9 @@
 
 //Top level Functions
 float my_sqrt(float x);
-float taylor_expansion(float x);
+float taylor_expansion(float x, int sqrt_approx);
 int find_companion(float n);
-void tweak(float n, float &sqrt_n_approx);
+float tweak(float n, float sqrt_n_approx);
 
 //Primary Helper Functions
 int get_digits(float n);

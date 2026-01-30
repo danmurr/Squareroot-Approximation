@@ -86,10 +86,12 @@ int main() {
         return 1;
     }
 
+    string subsystems = "Input, Companion, Taylor, Tweak";
 
     for (const string& test_file : test_files) {
         ofstream outputFile(new_directory + "/" + test_file);
-        if (!outputFile.is_open()){
+        ofstream outputFileSub(new_directory + "/subsystem-" + test_file);
+        if (!(outputFile.is_open() && outputFileSub.is_open())){
             std::cerr << "Error: Unable to create a new file." << std::endl;
             return 1; // Indicate an error
         }
@@ -97,40 +99,61 @@ int main() {
         string read_file = path + test_file;
         vector<string> f_lines = file_lines(read_file);
         
-         outputFile << f_lines[0] << "\n";
+        outputFileSub << subsystems << "\n";
+        outputFile << f_lines[0] << "\n";
+
         // Start at 0 unless you intentionally want to skip the first line
         for (int i = 1; i < f_lines.size(); i++) {
             string test_number = f_lines[i].substr(0, f_lines[i].size()-1);
             try {
                 double n = stod(test_number);
+
                 chrono::steady_clock::time_point start_time = chrono::steady_clock::now();
                 float cmath_sqrt_val = sqrt(n);
                 chrono::steady_clock::time_point current_time = chrono::steady_clock::now();
                 chrono::duration<double> elapsed_time = chrono::duration_cast<chrono::nanoseconds>(current_time - start_time);
                 float cmath_nanoseconds = (elapsed_time.count() * power(10.0f, 9));
-                // cout << "CMath Squareroot : " << cmath_sqrt_val << " in " << (elapsed_time.count() * power(10.0f, 9) )<< " nanoseconds.\n";
+                
                 start_time = chrono::steady_clock::now();
                 float sqrt_user_value = my_sqrt(n);
                 current_time = chrono::steady_clock::now();
                 elapsed_time = chrono::duration_cast<chrono::nanoseconds>(current_time - start_time);
                 float my_nanoseconds = (elapsed_time.count() * power(10.0f, 9));
-                // cout << "My Squareroot : " << sqrt_user_value << " in " << (elapsed_time.count() * power(10.0f, 9) )<< " nanoseconds.\n";
+                
+                start_time = chrono::steady_clock::now();
+                int companion_out = find_companion(n);
+                current_time = chrono::steady_clock::now();
+                elapsed_time = chrono::duration_cast<chrono::nanoseconds>(current_time - start_time);
+                float companion_nano = (elapsed_time.count() * power(10.0f, 9));
 
+                start_time = chrono::steady_clock::now();
+                float taylor_out = taylor_expansion(n, companion_out);
+                current_time = chrono::steady_clock::now();
+                elapsed_time = chrono::duration_cast<chrono::nanoseconds>(current_time - start_time);
+                float taylor_nano = (elapsed_time.count() * power(10.0f, 9));
+
+                start_time = chrono::steady_clock::now();
+                float tweak_out = tweak(n, taylor_out);
+                current_time = chrono::steady_clock::now();
+                elapsed_time = chrono::duration_cast<chrono::nanoseconds>(current_time - start_time);
+                float tweak_nano = (elapsed_time.count() * power(10.0f, 9));
+
+                outputFileSub << n << ", " << companion_nano << ", " << taylor_nano << ", " << tweak_nano << "\n";
+                
                 if (areEqual(cmath_sqrt_val, sqrt_user_value)){
-                    // cout << n << ", " << my_nanoseconds << ", " << cmath_nanoseconds << "\n";
                     outputFile << n << ", " << my_nanoseconds << ", " << cmath_nanoseconds << "\n";
                 }
                 else{
                     outputFile << n << ", -100, " << cmath_nanoseconds << "\n";
-                    // cout << cmath_sqrt_val << " is not equal to " << sqrt_user_value <<"\n";
                 }
             } catch (const invalid_argument& ia) {
                 cerr << "Invalid argument: " << ia.what() << endl;
             } catch (const out_of_range& oor) {
                 cerr << "Out of range: " << oor.what() << endl;
             }
-            
         }
+        outputFile.close();
+        outputFileSub.close();
     }
 
     return 0; // Return successfully

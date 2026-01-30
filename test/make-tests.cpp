@@ -35,6 +35,7 @@ vector<string> file_names(string path){
 }
 
 string get_new_file_name(string path){
+    srand(static_cast<unsigned int>(time(nullptr)));
     vector<string> files = file_names(path);
 
     int fileNum{0};
