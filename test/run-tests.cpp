@@ -71,7 +71,7 @@ int main() {
     // The name of the file you want to read
     vector<string> test_files = file_names(path);
     
-    const string write_path = "../test/run-tests/past-tests/";
+    const string write_path = "../test/past-tests/";
     const auto now = chrono::system_clock::now();
     // Format the time point directly into a string (adjust format specifiers as needed)
     string date_time_str = format("{:%Y-%m-%d %H:%M:%S}", now);
