@@ -7,7 +7,7 @@
 int main(){
     float user_value;
 
-    std::cout << "Enter the number you wish to squareroot: ";
+    std::cout << "Enter a number to squareroot: ";
 
     if (!(std::cin >> user_value)) {
         std::cout << "Invalid input." << std::endl;

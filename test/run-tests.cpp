@@ -156,5 +156,7 @@ int main() {
         outputFileSub.close();
     }
 
+    std::system("python3 ../test/run-and-visualize-tests.py");
+
     return 0; // Return successfully
 }
